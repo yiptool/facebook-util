@@ -25,22 +25,39 @@
 
 @implementation FBSession (ExtraMethods)
 
--(void)fetchAvatarForMe:(void(^)(UIImage *))completion
++(void)queryAvatarURLForUser:(NSString *)userID completion:(void(^)(NSString * url))completion
 {
-	NSString * url = [NSString stringWithFormat:
-		@"https://graph.facebook.com/me/picture?type=large&return_ssl_resources=1&access_token=%@",
-		self.accessTokenData.accessToken];
+	NSString * url = [NSString
+		stringWithFormat:@"https://graph.facebook.com/%@/picture?type=large&redirect=false", userID];
 
-	NSOperationQueue * operationQueue = [[[NSOperationQueue alloc] init] autorelease];
 	NSURLRequest * request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
-	[NSURLConnection sendAsynchronousRequest:request queue:operationQueue
+	[NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue]
 		completionHandler:^(NSURLResponse * response, NSData * data, NSError * error)
 	{
-		UIImage * image = (error ? nil : [UIImage imageWithData:data]);
-		dispatch_async(dispatch_get_main_queue(), ^{
+		if (error || !data)
+		{
 			if (completion)
-				completion(image);
-		});
+				completion(nil);
+			return;
+		}
+
+		NSString * url;
+		@try
+		{
+			id json = [NSJSONSerialization JSONObjectWithData:data
+				options:NSJSONReadingAllowFragments error:nil];
+			url = json[@"url"];
+		}
+		@catch (id e)
+		{
+			NSLog(@"Unable to fetch Facebook avatar URL: %@", e);
+			if (completion)
+				completion(nil);
+			return;
+		}
+
+		if (completion)
+			completion(url);
 	}];
 }
 

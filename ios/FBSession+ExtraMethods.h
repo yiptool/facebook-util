@@ -24,5 +24,5 @@
 #import <FacebookSDK/FBSession.h>
 
 @interface FBSession (ExtraMethods)
--(void)fetchAvatarForMe:(void(^)(UIImage *))completion;
++(void)queryAvatarURLForUser:(NSString *)userID completion:(void(^)(NSString * url))completion;
 @end
