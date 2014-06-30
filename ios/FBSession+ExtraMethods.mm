@@ -46,7 +46,7 @@
 		{
 			id json = [NSJSONSerialization JSONObjectWithData:data
 				options:NSJSONReadingAllowFragments error:nil];
-			url = json[@"url"];
+			url = json[@"data"][@"url"];
 		}
 		@catch (id e)
 		{
